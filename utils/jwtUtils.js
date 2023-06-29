@@ -4,15 +4,15 @@ const config = require('../config/config');
 exports.generateToken = (user) => {
   const payload = {
     user: {
-      id: user.id,
+      id: user.userId,
       username: user.username,
       role: user.role,
     },
   };
 
-  return jwt.sign(payload, config.secretKey, { expiresIn: '1h' });
+  return jwt.sign(payload, config.JWT_SECRET_KEY, { expiresIn: '1h' });
 };
 
 exports.verifyToken = (token) => {
-  return jwt.verify(token, config.secretKey);
+  return jwt.verify(token, config.JWT_SECRET_KEY);
 };

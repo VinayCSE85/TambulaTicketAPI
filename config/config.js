@@ -1,5 +1,7 @@
+// needs to be stored securely
 module.exports = {
-    secretKey: '7e6d9f3c1a8b5e2d4f7c0a9b3e1d6f8c',
+    ADMIN_SECRET_KEY: 'admin_secret_key',
+    JWT_SECRET_KEY: 'jwt_secret_key',
     port: 3000,
 };
   

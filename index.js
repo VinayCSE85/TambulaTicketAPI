@@ -2,9 +2,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const config = require('./config/config');
 const authRoutes = require('./routes/authRoutes');
+const ticketRoutes = require('./routes/ticketRoutes');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || config.port;
 
 // Connect to MongoDB
 mongoose
@@ -21,6 +22,7 @@ app.use(express.json());
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/api/tickets', ticketRoutes);
 app.use('/', async (req, res) => {
     console.log("Application is running.");
     res.status(200).json({ message: 'Application is running.' });
