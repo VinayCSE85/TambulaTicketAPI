@@ -2,6 +2,7 @@ const UserDAO = require('../dao/userDAO');
 const jwtUtils = require('../utils/jwtUtils');
 const helper = require('../utils/helper');
 const bcrypt = require('bcrypt');
+const passwordValidator = require('password-validator');
 const config = require('../config/config');
 // Assuming you have retrieved the admin secret key from the environment variables
 const admin_secret_key = process.env.ADMIN_SECRET_KEY || config.ADMIN_SECRET_KEY;
@@ -10,6 +11,29 @@ const userDAO = new UserDAO();
 exports.register = async (req, res) => {
   try {
     const { username, password } = req.body;
+    if (username.length < 6 || username.length > 20) {
+      return res.status(400).json({ message: 'Username should be between 6 and 20 characters long.' });
+    }
+    const usernameRegex = /^[a-zA-Z0-9]+$/;
+    if (!usernameRegex.test(username)) {
+      return res.status(400).json({ message: 'Username should only contain alphanumeric characters.' });
+    }
+    const existingUser = await userDAO.findByUsername(username);
+    if (existingUser) {
+      return res.status(409).json({ message: 'Username is already taken.' });
+    }
+    const schema = new passwordValidator();
+    schema
+      .is().min(8)                                // Minimum length 8
+      .has().uppercase()                          // Must have uppercase letters
+      .has().lowercase()                          // Must have lowercase letters
+      .has().digits()                             // Must have digits
+      .has().symbols();                           // Must have symbols
+
+    // Validate the password
+    if (!schema.validate(password)) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters long and contain uppercase letters, lowercase letters, digits, and symbols.' });
+    }
     var userId = await helper.generateUniqueUserId();
     // we are hashing passwords to store them securely. Additional security measures
     // like minimum length and high complexity requirements can be enforced for enhanced security
@@ -59,6 +83,9 @@ exports.registerAdmin = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Username and password are required' });
+    }
 
     // Assumption: username is unique
     const user = await userDAO.findByUsername(username);

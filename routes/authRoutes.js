@@ -1,20 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-// const authMiddleware = require('../services/authorization');
+const rateLimit = require('express-rate-limit');
 
-router.post('/register', authController.register);
-router.post('/login', authController.login);
-router.post('/registerAdmin', authController.registerAdmin);
+// Rate limiter
+const limiter = rateLimit({
+  windowMs: 60 * 60 * 1000,  // 1 hour
+  max: 100,
+  message: 'Too many requests from this IP, please try again later.'
+});
 
-// Protected route
-// router.get('/protected', authMiddleware.authenticate, (req, res) => {
-//   res.json({ message: 'You are authorized to access this route' });
-// });
-
-// Admin route
-// router.get('/admin', authMiddleware.authenticate, authMiddleware.authorize, (req, res) => {
-//   res.json({ message: 'You are authorized as an admin' });
-// });
+router.post('/register', limiter, authController.register);
+router.post('/login', limiter, authController.login);
+router.post('/registerAdmin', limiter, authController.registerAdmin);
 
 module.exports = router;
