@@ -4,6 +4,6 @@ const ticketController = require('../controllers/ticketController');
 const router = express.Router();
 
 router.post('/create', ticketController.createTicket);
-router.get('/', )
+router.get('/fetchTickets', ticketController.fetchTicketsByTicketId);
 
 module.exports = router;

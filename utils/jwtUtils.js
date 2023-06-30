@@ -14,5 +14,11 @@ exports.generateToken = (user) => {
 };
 
 exports.verifyToken = (token) => {
-  return jwt.verify(token, config.JWT_SECRET_KEY);
+    try{
+        const decodedToken = jwt.verify(token, config.JWT_SECRET_KEY);
+        return decodedToken;
+    }
+    catch(error){
+        throw new Error('Invalid Token');
+    }
 };

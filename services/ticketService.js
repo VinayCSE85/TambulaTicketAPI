@@ -1,18 +1,22 @@
-const Ticket = require('../models/ticket');
-const { generateTicket, generateTicketId } = require('../utils/helper');
+const helper = require('../utils/helper');
+const TicketDAO = require('../dao/ticketDAO');
 
-async function createTicket(userId) {
-  const ticketId = generateTicketId();
-  const ticketData = generateTicket();
-  
-  const ticket = new Ticket({
-    ticketId,
-    ticketData
-  });
+const ticketDao = new TicketDAO();
 
-  await ticket.save();
-
-  return ticketId;
+async function createTickets(numberOfTickets) {
+    const ticketId = await helper.generateUniqueTicketId();
+    const ticketData = helper.generateTicketData(numberOfTickets);
+    const ticketInformation = {ticketId: ticketId, tickets: ticketData};
+    console.log(ticketInformation);
+    const tickets = await ticketDao.createTicket(ticketInformation);
+    ticketInformation["createdDate"] = tickets.createdAt;
+    return ticketInformation;
 }
 
-module.exports = { createTicket };
+async function fetchTicketsByTicketId(ticketId, page, limit) {
+    const tickets = await ticketDao.fetchTicketsByTicketId(ticketId, page, limit);
+
+    return tickets;
+  }
+
+module.exports = { createTickets, fetchTicketsByTicketId };

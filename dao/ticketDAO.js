@@ -2,24 +2,15 @@ const Ticket = require('../models/ticket');
 
 class TicketDao {
   async createTicket(ticketData) {
-    const ticket = new Ticket(ticketData);
-    await ticket.save();
-    return ticket;
-  }
-
-  async fetchAllTickets() {
-    const tickets = await Ticket.find();
+    const tickets = new Ticket(ticketData);
+    await tickets.save();
     return tickets;
   }
 
-  async fetchTicketByTicketId(ticketId) {
-    const ticket = await Ticket.findOne({ ticketId });
-    return ticket;
-  }
-
-  async fetchTicketsByUserId(userId, page = 1, limit = 10) {
+  async fetchTicketsByTicketId(ticketId, page = 1, limit = 10) {
+    console.log("Data Retrieval Parameters: ticketID: "+ticketId+" Page: "+page+" Limit: "+limit);
     const skip = (page - 1) * limit;
-    const tickets = await Ticket.find({ userId }).skip(skip).limit(limit);
+    const tickets = await Ticket.find({ ticketId }).skip(skip).limit(limit);
     return tickets;
   }
 }
