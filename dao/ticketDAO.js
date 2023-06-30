@@ -10,8 +10,14 @@ class TicketDao {
   async fetchTicketsByTicketId(ticketId, page = 1, limit = 10) {
     console.log("Data Retrieval Parameters: ticketID: "+ticketId+" Page: "+page+" Limit: "+limit);
     const skip = (page - 1) * limit;
-    const tickets = await Ticket.find({ ticketId }).skip(skip).limit(limit);
-    return tickets;
+    const ticketObject = await Ticket.findOne({ ticketId });
+    const tickets = ticketObject ? ticketObject.tickets : [];
+    var paginatedTickets = {};
+    for(let i=skip+1; i <= skip+limit; i++){
+        var key = "ticket"+i;
+        paginatedTickets[key] = tickets[key];
+    }
+    return {ticketId: ticketId, tickets:paginatedTickets};//Ideally this should be vetted against a data formatter
   }
 }
 

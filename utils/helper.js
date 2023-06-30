@@ -55,8 +55,13 @@ function generateTicketData(numberOfTickets) {
     var ticketCount = 0;
     while(ticketCount < numberOfTickets){
         var setOfSix = makeSixTickets();
+        var retries = 0;
         while(setOfSix.length === 0){
+            if(retries === 3){
+                throw new Error("Error in making tickets.");
+            }
             console.log("Error in making six sets. Retrying...");
+            retries++;
             setOfSix = makeSixTickets();
         }
         console.log("Created set of six: ");
@@ -110,10 +115,6 @@ function getShuffledNumbersFromRange(start, end){
         [shuffledRange[i], shuffledRange[j]] = [shuffledRange[j], shuffledRange[i]]; // Swap elements
     }
     return shuffledRange;
-}
-
-function selectRandomIndex(){
-    return Math.floor(Math.random() * 9);
 }
 
 function validIndex(selectedCol, columnsSelected, numbersIndex){
@@ -193,6 +194,12 @@ function makeSixTickets(){
         for(let i=0; i < 6; i++){
             var selection = selectedNumbers[i].sort((a, b) => a - b);
             var matrix = [];
+            var colSelections = [];// marks the columns which already have 3 elements
+            var twoElementColumns = [];//marks the columns which have 2 elements
+            // These will be helpful in rearranging the matrix elements so that
+            // each row contains exactly 5 numbers
+
+            // creating an empty matrix of 3x9 size
             for(let j=0; j < 3; j++){
                 var row = [];
                 for(let k=0; k < 9; k++){
@@ -201,6 +208,7 @@ function makeSixTickets(){
                 matrix.push(row);
             }
             var index = 0;
+            // populating it columnwise with the data prepared above
             for(let j=0; j < 9; j++){
                 var rowIndex = 0;
                 var endVal = (j+1)*10+1;
@@ -208,13 +216,79 @@ function makeSixTickets(){
                     matrix[rowIndex][j] = selection[index];
                     index++;
                     rowIndex++;
+                    if(rowIndex === 2){
+                        twoElementColumns.push(j);
+                    }
+                    if(rowIndex === 3){
+                        twoElementColumns = twoElementColumns.filter((element) => element !== j);
+                        colSelections.push(j);
+                    }
                 }
             }
+            // Fix first row
+            console.log('\n');
+            console.log("original matrix");
+            console.log(matrix.map(row => row.join('\t')).join('\n'));
+            console.log('ColSelections: '+colSelections);
+            console.log('twoElementColumns: '+twoElementColumns);
+            if(colSelections.length < 5){
+                var targetCount = 5 - colSelections.length; // number of columns that can be left intact
+                var count = 0;
+                var availableNumbers = getShuffledNumbersFromRange(0,9);
+                for(let j=0; j < 9; j++){
+                    if(!colSelections.includes(availableNumbers[j])){
+                        if(count < targetCount){
+                            count++;//except 5 columns, all other columns need to be pushed down
+                        }
+                        else{
+                            matrix[2][availableNumbers[j]] = matrix[1][availableNumbers[j]];
+                            matrix[1][availableNumbers[j]] = matrix[0][availableNumbers[j]];
+                            matrix[0][availableNumbers[j]] = 0;
+                            // out of the columns pushed down, 
+                            // we cannot furthur push the ones with already 2 elements
+                            // so we include them in colSelections 
+                            // to avoid being selected for push the next round
+                            if(twoElementColumns.includes(availableNumbers[j])){
+                                colSelections.push(availableNumbers[j]);
+                            }
+                            // colSelections contains columns that cannot be pushed down
+                            // and also have a number in second row
+
+                        }
+                    }
+                }
+                console.log('\n');
+                console.log('After row 1 push');
+                console.log(colSelections);
+                // For second row
+                targetCount = 5 - colSelections.length; // number of columns that can be left intact
+                count = 0;
+                availableNumbers = getShuffledNumbersFromRange(0,9);
+                var colNum;
+                // we first get some shuffled numbers
+                for(let j=0; j < 9; j++){
+                    colNum = availableNumbers[j];
+                    if(!colSelections.includes(colNum) && matrix[1][colNum] !== 0){
+                        if(count < targetCount){
+                            count++;//except 5 columns, all other columns need to be pushed down
+                        }
+                        else{
+                            matrix[2][colNum] = matrix[1][colNum];
+                            matrix[1][colNum] = 0;
+
+                        }
+                    }
+                }
+            }
+            console.log('\n');
+            console.log("reshuffled matrix");
+            console.log(matrix.map(row => row.join('\t')).join('\n'));
             setOfSix.push(matrix);
         }
         return setOfSix;
     }
     catch(error){
+        console.log(error);
         console.log("Error in generating six sets. Restart the process.");
         return [];
     }
